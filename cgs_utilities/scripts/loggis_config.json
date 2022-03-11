@@ -1,0 +1,15 @@
+{
+    "StandardEmailList": [
+        "blahblah@gmail.com",
+        "blahblahblah@gmail.com"
+    ],
+    "SMTPServer": "localhost:25",
+    "MaileSender": "foobar@gmail.com",
+    "FileLogLevel": "DEBUG",
+    "EmailLogLevel": "INFO",
+    "LoggingPortalURL": "pro",
+    "LoggingPortalUser": "",
+    "LoggingPortalPassword": "",
+    "PortalScriptInfoItemID": "",
+    "FilenameScriptInfo": "Script Information.csv"
+}
