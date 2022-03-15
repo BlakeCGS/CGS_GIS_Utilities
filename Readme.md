@@ -1,7 +1,6 @@
 # CGS_GIS_Utilities
 The GIS Utilities package contains models and scripts to be used in [ArcGIS Pro](https://www.esri.com/en-us/arcgis/products/arcgis-pro/overview). These utilities allow GIS administrators to catalog and manage their GIS environments. There are cataloging tools for your local GIS and ArcGIS Portal. Cataloging generates a report that contains useful information such as: paths to your documents and source data, as well as determining whether or not the data is working or broken. Using the Publish Reports script, these results can be publish to ArcGIS Online or ArcGIS Enterprise and used withing maps and dashboards.
 
-
 ArcGIS Dashboards are great tools for monitoring your GIS environments (example screenshot below). At a glance, they can provide you with insights that give you the information needed to take action when necessary. For example, you can create an interactive chart that you can click to display which layers are broken. From there, you can dive deeper to get to the root of the problem. Maybe a password for your SDE has been changed? Or maybe a server or folder was renamed. Once the problem is corrected, simply re-run the report and publish the new results to ArcGIS Online.
 
 ![](images/readme-md/Dashboard_Example_Blur.png)
