@@ -17,8 +17,8 @@ outCSVFile = arcpy.GetParameterAsText(5)
 
 
 usersToSkip = ['esri_nav', 'esri_livingatlas']
-maxItems = 10000000
-maxUsers = 10000000
+maxItems = 100000
+maxUsers = 100000
 
 
 def main():
@@ -33,18 +33,24 @@ def main():
         tb = sys.exc_info()[2]
         arcpy.AddMessage(f"ERROR @ Line {tb.tb_lineno} in file {__file__} with error: {sys.exc_info()[1]}")
 
+def creditCalculation(hosted, size):
+    credit = 0
+    if hosted == True:
+        credit = size * .24
+    elif hosted == '':
+        credit = size / 1000 * 1.2
+    return round(credit, 4)
+
 def catalogPortal(portalURL, adminUser, adminPassword, bBox, outCSVFile, testServices):
     gis = GIS(portalURL, adminUser, adminPassword)
     isArcGISOnline = gis._is_agol
     token = gis._con.token
     #arcpy.AddMessage(token)
-
-
     ## MODIFY ?? how we obtain the server ## OR DO WE EVEN NEED?
     user_result = gis.users.search("", max_users=maxUsers)
     with open(outCSVFile, mode='w', newline='') as outCsv:
         writeCsv = csv.writer(outCsv)
-        writeCsv.writerow(["Folder", "Type", "Hosted", "Title", "SizeBytes", "SizeMB", "Owner", "OwnerFolder", "SharedWithEveryone", "SharedWithOrganization", "SharedWithGroups", "NotShared", "ID", "Created", "Modified", "LayerTitle", "LayerType", "Status", "LayerURL", "TestURL", "MXD", "SupportsEditorTracking", "CreationDateField", "CreatorField", "EditDateField", "EditorField"])
+        writeCsv.writerow(["Folder", "Type", "Hosted", "Title", "SizeBytes", "SizeMB", "Owner", "OwnerFolder", "SharedWithEveryone", "SharedWithOrganization", "SharedWithGroups", "NotShared", "ID", "Created", "Modified", "LayerTitle", "LayerType", "Status", "LayerURL", "TestURL", "MXD", "SupportsEditorTracking", "CreationDateField", "CreatorField", "EditDateField", "EditorField", "Credits"])
         for user in user_result:
             if user.username in usersToSkip : continue
             allUserFolders = [None]
@@ -84,15 +90,15 @@ def catalogPortal(portalURL, adminUser, adminPassword, bBox, outCSVFile, testSer
                                     isHosted = True
                                     print(f'Hosted {item.url}')
                                 mxdPath = getMXDForService(itemUrl, "MapServer", token, isArcGISOnline)
-                            writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, "", "", itemStatus[0],itemUrl, itemStatus[1], mxdPath])
+                            writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, "", "", itemStatus[0],itemUrl, itemStatus[1], mxdPath,'','','','','', creditCalculation (isHosted, sizeMB)])
                             try:
                                 #Write service layers to CSV
                                 serviceLayers = item.layers
                                 for layer in serviceLayers:
                                     if hasattr(layer.properties, "editFieldsInfo"):
-                                        writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, layer.properties.name, layer.properties.type, itemStatus[0],layer.url, itemStatus[1], mxdPath, "Yes", layer.properties.editFieldsInfo.creationDateField, layer.properties.editFieldsInfo.creatorField, layer.properties.editFieldsInfo.editDateField, layer.properties.editFieldsInfo.editorField])
+                                        writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, layer.properties.name, layer.properties.type, itemStatus[0],layer.url, itemStatus[1], mxdPath, "Yes", layer.properties.editFieldsInfo.creationDateField, layer.properties.editFieldsInfo.creatorField, layer.properties.editFieldsInfo.editDateField, layer.properties.editFieldsInfo.editorField, creditCalculation (isHosted, sizeMB)])
                                     else: 
-                                        writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, layer.properties.name, layer.properties.type, itemStatus[0],layer.url, itemStatus[1], mxdPath, "No"])
+                                        writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, layer.properties.name, layer.properties.type, itemStatus[0],layer.url, itemStatus[1], mxdPath, "No", layer.properties.editFieldsInfo.creationDateField, layer.properties.editFieldsInfo.creatorField, layer.properties.editFieldsInfo.editDateField, layer.properties.editFieldsInfo.editorField, creditCalculation (isHosted, sizeMB)])
                             except Exception as e:
                                 print (e)
                                 pass
@@ -115,7 +121,7 @@ def catalogPortal(portalURL, adminUser, adminPassword, bBox, outCSVFile, testSer
                             if lyrType == "ArcGISFeatureLayer":
                                 itemStatus = testFeatureService(lyrUrl, token, isArcGISOnline, testServices)
                             try:
-                                writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, lyrTitle, lyrType, itemStatus[0], lyrUrl, itemStatus[1]])
+                                writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, lyrTitle, lyrType, itemStatus[0], lyrUrl, itemStatus[1],'','','','','','',creditCalculation (isHosted, sizeMB)])
                                 #print([folderTitle, iType, iTitle, iOwner, iId, createTime, modifiedTime, lyrTitle, lyrType, lyrUrl])
                             except Exception as e:
                                 print (item.title)
@@ -136,7 +142,7 @@ def catalogPortal(portalURL, adminUser, adminPassword, bBox, outCSVFile, testSer
                             if iType == "Feature Service":
                                 itemStatus = testFeatureService(lyrUrl, token, isArcGISOnline, testServices)
                             try:
-                                writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, lyrTitle, lyrType, itemStatus[0], lyrUrl, itemStatus[1]])
+                                writeCsv.writerow([folderTitle, iType, isHosted, iTitle, sizeBytes, sizeMB, iOwner, item.ownerFolder, item.shared_with['everyone'], item.shared_with['org'], grpShareString, notShared, iId, createTime, modifiedTime, lyrTitle, lyrType, itemStatus[0], lyrUrl, itemStatus[1],'','','','','','',creditCalculation (isHosted, sizeMB)])
                                 #print([folderTitle, iType, iTitle, iOwner, iId, createTime, modifiedTime, lyrTitle, lyrType, lyrUrl])
                             except Exception as e:
                                 print (item.title)
